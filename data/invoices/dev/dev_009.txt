@@ -1,0 +1,18 @@
+TAX INVOICE                                        (ORIGINAL FOR RECIPIENT)
+Godavari Packaging Industries
+Medchal, Telangana  |  GSTIN 36AAMFG8843C1Z8  |  accounts@godavaripack.example
+
+Inv#: GPI-0173            Inv Dt: 18-04-2026
+Bill To: MERIDIAN PRECISION COMPONENTS PVT. LTD., CHAKAN, PUNE  |  GSTIN 27AAECM7310K1ZE
+PO: PO-2026-0119
+
+Items
+ - Corrugated Box 5-ply 600x400x400 | HSN 4819 | 340 nos x Rs 64.50 = Rs 21,930.00
+ - Stretch Film 23 micron (roll) | HSN 3920 | 7 roll x Rs 1,180.00 = Rs 8,260.00
+
+Taxable Value: Rs 30,190.00
+IGST @18%: Rs 5,434.20
+Rounding: -0.20
+Total Invoice Value: Rs. 35,624/-
+Payment: NEFT/RTGS to Orbit Bank, Medchal A/c 31840100036061, IFSC ORBK0003606
+Goods once sold will not be taken back. Interest @18% p.a. on overdue bills.

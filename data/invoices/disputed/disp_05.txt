@@ -1,0 +1,29 @@
+                        PRECISION GAUGES & INSTRUMENTS                        
+                  Bhosari, Pune - Manufacturers & Suppliers                   
+GSTIN/UIN: 27AABFP2915E1ZK          State Name : Maharashtra, Code : 27
+                                  TAX INVOICE                                  
+------------------------------------------------------------------------------
+Invoice No. : PGI/26-27/018                Dated : 06/05/2026
+Buyer (Bill to) : Meridian Precision Components Pvt. Ltd.
+                  Gat No. 112, Chakan Industrial Area Phase II, Pune, Maharashtra 410501
+GSTIN/UIN : 27AAECM7310K1ZE    State Name : Maharashtra, Code : 27
+Buyer's Order No. : PO-2026-0157
+------------------------------------------------------------------------------
+Sl  Description of Goods                     HSN/SAC     Qty Unit       Rate       Amount
+ 1  Plug Gauge 20H7 Go/NoGo                  9031          4 NOS    3,850.00    15,950.00
+ 2  Calibration service (per instrument)     998346        6 NOS    1,500.00     9,000.00
+------------------------------------------------------------------------------
+                                                 Sub Total      24,950.00
+                                                 CGST @ 9%       2,245.50
+                                                 SGST @ 9%       2,245.50
+                                                  TOTAL  ₹      29,441.00
+Amount Chargeable (in words): INR Twenty Nine Thousand Four Hundred Forty One Only
+Company's  Bank Details
+   Bank Name : Tal Bank, Bhosari
+  A/c No.   : 0219201000751
+  IFS Code  : TALB0000219
+                                            for Precision Gauges & Instruments
+                                                           Authorised Signatory
+E.  & O.E.                         This is a Computer Generated Invoice
+Subject to Pune jurisdiction
+Page 1 of 1

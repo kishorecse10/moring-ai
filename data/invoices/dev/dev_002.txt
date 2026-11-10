@@ -1,0 +1,31 @@
+                     SITARA INDUSTRIAL SUPPLIES PVT. LTD.                     
+                  Bhosari, Pune - Manufacturers & Suppliers                   
+GSTIN/UIN: 27AAKCS4821M1ZW          State Name : Maharashtra, Code : 27
+                                 TAX INVOICE                                  
+------------------------------------------------------------------------------
+Invoice No. : SIS/26-27/0047               Dated : 03/04/2026
+Buyer (Bill to) : Meridian Precision Components Pvt. Ltd.
+                  Gat No. 112, Chakan Industrial Area Phase II, Pune, Maharashtra 410501
+GSTIN/UIN : 27AAECM7310K1ZE    State Name : Maharashtra, Code : 27
+Buyer's Order No. : PO-2026-0121
+------------------------------------------------------------------------------
+Sl  Description of Goods                     HSN/SAC     Qty Unit       Rate       Amount
+ 1  SS Hex Nut M10 (Box/200)                 7318          6 BOX      980.00     5,880.00
+ 2  Allen Cap Screw M8x25 (Box/100)          7318          3 BOX    1,120.00     3,360.00
+------------------------------------------------------------------------------
+_ _
+                                                 Sub Total       9,240.00
+                                                 CGST @ 9%         831.60
+                                                 SGST @ 9%         831.60
+                                                 Round Off          -0.20
+                                                  TOTAL  ₹      10,903.00
+Amount Chargeable (in words): INR Ten Thousand Nine Hundred Three Only
+Company's Bank Details
+   Bank Name : Zephyr Bank, Bhosari
+  A/c No.   : 50200012345678
+  IFS Code  : ZEPH0001234
+                                      for Sitara Industrial Supplies Pvt. Ltd.
+                                                           Authorised Signatory
+E.  & O.E.                         This is a Computer Generated Invoice
+Subject to Pune jurisdiction
+Page 1 of 1

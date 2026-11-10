@@ -1,0 +1,87 @@
+{
+  "Version": "1.1",
+  "Irn": "5374a851f71719c940af9a9bd3c4fdf6e0d9d6d282e3582c91a0f2aa201537b4",
+  "AckNo": 112610579029981,
+  "AckDt": "2026-04-08 12:55:00",
+  "TranDtls": {
+    "TaxSch": "GST",
+    "SupTyp": "B2B",
+    "RegRev": "N"
+  },
+  "DocDtls": {
+    "Typ": "INV",
+    "No": "KT/2026/118",
+    "Dt": "08/04/2026"
+  },
+  "SellerDtls": {
+    "Gstin": "27AAACK9034R1ZX",
+    "LglNm": "Konkan Tooling Pvt. Ltd.",
+    "Addr1": "Pimpri, Pune",
+    "Loc": "Pimpri",
+    "Stcd": "27"
+  },
+  "BuyerDtls": {
+    "Gstin": "27AAECM7310K1ZE",
+    "LglNm": "Meridian Precision Components Pvt. Ltd.",
+    "Pos": "27",
+    "Addr1": "Gat No. 112, Chakan Industrial Area Phase II, Pune, Maharashtra 410501",
+    "Loc": "Chakan",
+    "Pin": 410501,
+    "Stcd": "27"
+  },
+  "ItemList": [
+    {
+      "SlNo": "1",
+      "PrdDesc": "Boring Bar S20R-SCLCR09",
+      "IsServc": "N",
+      "HsnCd": "8207",
+      "Qty": 2.0,
+      "Unit": "NOS",
+      "UnitPrice": 18500.0,
+      "TotAmt": 37000.0,
+      "AssAmt": 37000.0,
+      "GstRt": 18.0,
+      "CgstAmt": 3330.0,
+      "SgstAmt": 3330.0,
+      "IgstAmt": 0.0,
+      "TotItemVal": 43660.0
+    },
+    {
+      "SlNo": "2",
+      "PrdDesc": "Carbide Insert CNMG 120408 (Pack of 10)",
+      "IsServc": "N",
+      "HsnCd": "8209",
+      "Qty": 5.0,
+      "Unit": "PACK",
+      "UnitPrice": 4850.0,
+      "TotAmt": 24250.0,
+      "AssAmt": 24250.0,
+      "GstRt": 18.0,
+      "CgstAmt": 2182.5,
+      "SgstAmt": 2182.5,
+      "IgstAmt": 0.0,
+      "TotItemVal": 28615.0
+    }
+  ],
+  "ValDtls": {
+    "AssVal": 61250.0,
+    "CgstVal": 5512.5,
+    "SgstVal": 5512.5,
+    "IgstVal": 0.0,
+    "RndOffAmt": 0.0,
+    "TotInvVal": 72275.0
+  },
+  "PayDtls": {
+    "Nm": "Konkan Tooling Pvt. Ltd.",
+    "AccDet": "50200098765432",
+    "Mode": "NEFT",
+    "FinInsBr": "ZEPH0000208"
+  },
+  "RefDtls": {
+    "ContrDtls": [
+      {
+        "PORefr": "PO-2026-0102"
+      }
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+                          SHAKTI CASTINGS PVT. LTD.                           
+              Kolhapur, Maharashtra - Manufacturers & Suppliers               
+GSTIN/UIN: 27AAPCS5512H1Z4          State Name : Maharashtra, Code : 27
+' .
+                                 TAX INVOICE                                  
+------------------------------------------------------------------------------
+Invoice No. : SCPL/26-27/004               Dated : 12/04/2026
+Buyer (Bill to) : Meridian Precision Components Pvt. Ltd.
+                  Gat No. 112, Chakan Industrial Area Phase II, Pune, Maharashtra 410501
+GSTIN/UIN : 27AAECM7310K1ZE    State Name : Maharashtra, Code : 27
+Buyer's Order No. : PO-2026-0112
+------------------------------------------------------------------------------
+Sl  Description of Goods                     HSN/SAC     Qty Unit       Rate       Amount
+ 1  Grey Iron Casting - Pump Housing PH-40   7325         40 NOS    2,350.00    94,000.00
+------------------------------------------------------------------------------
+                                                 Sub Total      94,000.00
+                                                 CGST @ 9%       8,460.00
+                                                 SGST @ 9%       8,460.00
+_ _
+                                                  TOTAL  ₹    1,10,920.00
+Amount Chargeable (in words): INR One Lakh Ten Thousand Nine Hundred Twenty Only
+Company's Bank Details
+   Bank Name : Tal Bank, Kolhapur
+_ _
+  A/c No.   : 1408201009983
+  IFS Code  : TALB0001408
+                                                  for Shakti Castings Pvt. Ltd.
+                                                          Authorised Signatory
+E.  & O.E.                         This is a Computer Generated Invoice
+Subject to Maharashtra jurisdiction
+Page 1 of 1

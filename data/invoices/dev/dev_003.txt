@@ -1,0 +1,16 @@
+TAX INVOICE                                        (ORIGINAL FOR RECIPIENT)
+Narmada  Polymers LLP
+Vapi, Gujarat  |  GSTIN 24AAOFN2207Q1ZX  |  billing@narmadapolymers.example
+
+Inv#: NPL/2627/0311            Inv Dt: 11-04-2026
+Bill To: MERIDIAN PRECISION COMPONENTS PVT. LTD., CHAKAN, PUNE  |  GSTIN 27AAECM7310K1ZE
+PO: PO-2026-0109
+
+Items
+ - HDPE Granules Grade 50MA180 | HSN 3901 | 500 kg x Rs 112.50 = Rs 56,250.00
+
+Taxable Value: Rs 56,250.00
+IGST @18%: Rs 10,125.00
+Total Invoice Value: Rs. 66,375/-
+Payment: NEFT/RTGS to Orbit Bank, Vapi A/c 31840100022917, IFSC ORBK0000415
+Goods once sold will not be taken back. Interest @18% p.a. on overdue bills.

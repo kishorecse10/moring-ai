@@ -1,0 +1,16 @@
+TAX INVOICE                                        (ORIGINAL FOR RECIPIENT)
+Orion Fasteners
+Faridabad, Haryana  |  GSTIN 06AAEFO3690B1ZL  |  accounts@orionfasteners.example
+
+Inv#: OF-26-0398            Inv Dt: 09-04-2026
+' .
+Bill To: MERIDIAN PRECISION COMPONENTS PVT. LTD., CHAKAN, PUNE  |  GSTIN 27AAECM7310K1ZE
+
+Items
+ - High Tensile Stud M12x80 (Box/50) | HSN 7318 | 10 box x Rs 2,150.00 = Rs 21,500.00
+
+Taxable Value: Rs 21,500.00
+IGST @18%: Rs 3,870.00
+Total Invoice Value: Rs. 25,370/-
+Payment: NEFT/RTGS to Zephyr Bank, Faridabad A/c 50200044109911, IFSC ZEPH0004410
+Goods once sold will not be taken back. Interest @18% p.a. on overdue bills.

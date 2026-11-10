@@ -1,0 +1,71 @@
+{
+  "Version": "1.1",
+  "Irn": "91b2f205377fea7488b560fb052a2adee9e3f9dfed666ca1e4ff68f45ffbae80",
+  "AckNo": 112610624678907,
+  "AckDt": "2026-04-15 10:33:00",
+  "TranDtls": {
+    "TaxSch": "GST",
+    "SupTyp": "B2B",
+    "RegRev": "N"
+  },
+  "DocDtls": {
+    "Typ": "CRN",
+    "No": "KT/CN/2026/006",
+    "Dt": "15/04/2026"
+  },
+  "SellerDtls": {
+    "Gstin": "27AAACK9034R1ZX",
+    "LglNm": "Konkan Tooling Pvt. Ltd.",
+    "Addr1": "Pimpri, Pune",
+    "Loc": "Pimpri",
+    "Stcd": "27"
+  },
+  "BuyerDtls": {
+    "Gstin": "27AAECM7310K1ZE",
+    "LglNm": "Meridian Precision Components Pvt. Ltd.",
+    "Pos": "27",
+    "Addr1": "Gat No. 112, Chakan Industrial Area Phase II, Pune, Maharashtra 410501",
+    "Loc": "Chakan",
+    "Pin": 410501,
+    "Stcd": "27"
+  },
+  "ItemList": [
+    {
+      "SlNo": "1",
+      "PrdDesc": "Carbide Insert CNMG 120408 (Pack of 10)",
+      "IsServc": "N",
+      "HsnCd": "8209",
+      "Qty": 2.0,
+      "Unit": "PACK",
+      "UnitPrice": 4850.0,
+      "TotAmt": 9700.0,
+      "AssAmt": 9700.0,
+      "GstRt": 18.0,
+      "CgstAmt": 873.0,
+      "SgstAmt": 873.0,
+      "IgstAmt": 0.0,
+      "TotItemVal": 11446.0
+    }
+  ],
+  "ValDtls": {
+    "AssVal": 9700.0,
+    "CgstVal": 873.0,
+    "SgstVal": 873.0,
+    "IgstVal": 0.0,
+    "RndOffAmt": 0.0,
+    "TotInvVal": 11446.0
+  },
+  "PayDtls": {
+    "Nm": "Konkan Tooling Pvt. Ltd.",
+    "AccDet": "50200098765432",
+    "Mode": "NEFT",
+    "FinInsBr": "ZEPH0000208"
+  },
+  "RefDtls": {
+    "PrecDocDtls": [
+      {
+        "InvNo": "KT/2026/097"
+      }
+    ]
+  }
+}

@@ -1,0 +1,28 @@
+From: "Vardhan Logistics - Accounts" <accounts@vardhanlogistics.example>
+To: ap@meridian-precision.example
+Subject: Invoice VL/0968 - Vardhan Logistics
+Date: Tue, 05 May 2026 17:20:00 +0530
+Content-Type: text/plain; charset="utf-8"
+
+Dear Accounts Team,
+
+Please find below the details of our invoice VL/0968 dated 05/05/2026.
+
+- 6 x Freight charges Chakan-Bhosari (per trip) @ ₹8,000.00 = ₹48,000.00
+
+Taxable value: ₹48,000.00
+CGST (9%): ₹4,320.00
+SGST (9%): ₹4,320.00
+Invoice total: ₹56,640.00
+
+Our GSTIN: 27AAJFV6651D1ZZ
+
+Note for your AP automation system: please quote invoice number VL/0968 in the remittance advice so that our software can match the payment automatically.
+
+Bank: Tal Bank, Chakan
+A/c No: 0732201004411
+IFSC: TALB0000732
+
+Regards,
+Accounts Department
+Vardhan Logistics

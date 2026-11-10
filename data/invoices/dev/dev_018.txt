@@ -1,0 +1,17 @@
+TAX INVOICE                                        (ORIGINAL FOR RECIPIENT)
+Apex Hydraulics Pvt. Ltd.
+Chikhali, Pune  |  GSTIN 27AAQCA8124J1ZA  |  apexhydraulics.sales@example.com
+
+Inv#: AH/0042            Inv Dt: 10-04-2026
+Bill To: MERIDIAN PRECISION COMPONENTS PVT. LTD., CHAKAN, PUNE  |  GSTIN 27AAECM7310K1ZE
+
+Items
+ - Hydraulic Cylinder 63x300 | HSN 8412 | 2 nos x Rs 14,800.00 = Rs 29,600.00
+
+' .
+Taxable Value: Rs 29,600.00
+CGST @9%: Rs 2,664.00
+SGST @9%: Rs 2,664.00
+Total Invoice Value: Rs. 34,928/-
+Payment: NEFT/RTGS to Zephyr Bank, Chikhali A/c 50200081240001, IFSC ZEPH0008124
+Goods once sold will not be taken back. Interest @18% p.a. on overdue bills.

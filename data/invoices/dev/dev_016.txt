@@ -1,0 +1,17 @@
+TAX INVOICE                                        (ORIGINAL FOR RECIPIENT)
+Malwa Steel Traders
+Indore, Madhya Pradesh  |  GSTIN 23AAHFM7702K1Z9  |  accounts@malwasteel.example
+
+Inv#: 0007            Inv Dt: 14-04-2026
+Bill To: MERIDIAN PRECISION COMPONENTS PVT. LTD., CHAKAN, PUNE  |  GSTIN 27AAECM7310K1ZE
+PO: PO-2026-0110
+
+Items
+ - MS Round Bar EN8 Dia 40mm | HSN 7214 | 1,200 kg x Rs 71.20 = Rs 85,440.00
+
+Taxable Value: Rs 85,440.00
+IGST @18%: Rs 15,379.20
+Rounding: -0.20
+Total Invoice Value: Rs. 1,00,819/-
+Payment: NEFT/RTGS to Zephyr Bank, Indore A/c 50200023031177, IFSC ZEPH0002303
+Goods once sold will not be taken back. Interest @18% p.a. on overdue bills.

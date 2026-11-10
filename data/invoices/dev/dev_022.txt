@@ -1,0 +1,17 @@
+TAX  INVOICE                                        (ORIGINAL FOR RECIPIENT)
+Narmada  Polymers LLP
+Vapi, Gujarat  |  GSTIN 24AAOFN2207Q1ZX  |  billing@narmadapolymers.example
+
+Inv#: NPL/2627/0328            Inv Dt: 05.04.2026
+Bill To: MERIDIAN PRECISION COMPONENTS PVT. LTD., CHAKAN, PUNE  |  GSTIN 27AAECM7310K1ZE
+PO: PO-2026-0106
+
+Items
+ - PP Copolymer Natural | HSN 3902 | 750 kg x Rs 98.45 = Rs 73,837.50
+
+Taxable Value: Rs 73,837.50
+IGST @18%: Rs 13,290.75
+Rounding: -0.25
+Total Invoice Value: Rs. 87,128/-
+Payment: NEFT/RTGS to Orbit Bank, Vapi A/c 31840100022917, IFSC ORBK0000415
+Goods once sold will not be taken back. Interest @18% p.a. on overdue bills.

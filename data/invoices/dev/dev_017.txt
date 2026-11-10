@@ -1,0 +1,35 @@
+                    BHARAT ABRASIVES & CHEMICALS PVT. LTD.                    
+                Peenya, Bengaluru - Manufacturers & Suppliers                 
+GSTIN/UIN: 29AAGCB1178L1ZB          State Name : Karnataka, Code : 29
+                                 TAX INVOICE                                  
+------------------------------------------------------------------------------
+Invoice No. : BAC/26-27/0061               Dated : 22/04/2026
+|
+Buyer (Bill to) : Meridian Precision Components Pvt. Ltd.
+. ,
+                  Gat No. 112, Chakan Industrial Area Phase II, Pune, Maharashtra 410501
+GSTIN/UIN : 27AAECM7310K1ZE    State Name : Maharashtra, Code : 27
+Buyer's Order No. : PO-2026-0127
+------------------------------------------------------------------------------
+Sl  Description of Goods                     HSN/SAC     Qty Unit       Rate       Amount
+ 1  Grinding Wheel 200x25x31.75 A60          6804        200 NOS    1,240.00  2,48,000.00
+ 2  Cutting Oil (20 L can)                   2710         38 CAN    4,600.00  1,74,800.00
+ 3  Dressing Stick 150x25x25                 6804          1 NOS      929.00       929.00
+------------------------------------------------------------------------------
+                                                 Sub Total    4,23,729.00
+                                                IGST @ 18%      76,271.22
+                                                 Round Off          -0.22
+                                                  TOTAL  ₹    5,00,000.00
+Amount Chargeable (in words): INR Five Lakh Only
+Company's Bank Details
+' .
+  Bank Name : Orbit Bank, Peenya
+  A/c No.   : 31840100077120
+  IFS Code  : ORBK0001109
+' .
+                                     for Bharat Abrasives & Chemicals Pvt. Ltd.
+                                                           Authorised Signatory
+E. & O.E.                         This is a Computer Generated Invoice
+. ,
+Subject  to Bengaluru jurisdiction
+Page 1 of 1

@@ -1,0 +1,21 @@
+CloudNimbus Inc.
+2100 Harbor Blvd, Suite 400, Oakland, CA 94607, United States
+billing@cloudnimbus.example
+
+INVOICE
+
+Invoice number      CN-2026-04417
+Invoice date        04/03/2026
+Due date            05/03/2026
+Bill to             Meridian Precision Components Pvt. Ltd., Pune, India
+
+Description                                            Qty  Unit price       Amount
+Nimbus Analytics - Team plan (per seat, Apr 2026)       25      $50.00    $1,250.00
+API usage overage (per 10k calls)                       12       $4.00       $48.00
+
+Subtotal                                                               $1,298.00
+Tax (0%)                                                               $0.00
+Total due (USD)                                                        $1,298.00
+
+Payment: the card on file will be charged automatically on the due date.
+Questions? billing@cloudnimbus.example

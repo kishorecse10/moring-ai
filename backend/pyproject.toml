@@ -1,0 +1,31 @@
+[project]
+name = "ledgerline"
+version = "0.3.0"
+description = "LLM-assisted accounts-payable copilot (Moring AI engineer challenge)"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.29",
+  "python-multipart>=0.0.9",
+  "pydantic>=2.6",
+  "python-dateutil>=2.9",
+  "python-dotenv>=1.0",
+  "httpx>=0.27",
+  "anthropic>=0.40",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.5"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ledgerline*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110

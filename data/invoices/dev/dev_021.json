@@ -1,0 +1,71 @@
+{
+  "Version": "1.1",
+  "Irn": "cdd35f890353aa191d50f319f52b4d1c1082e75220fdd021b97b59cf0e975548",
+  "AckNo": 112610109633412,
+  "AckDt": "2026-04-17 15:17:00",
+  "TranDtls": {
+    "TaxSch": "GST",
+    "SupTyp": "B2B",
+    "RegRev": "N"
+  },
+  "DocDtls": {
+    "Typ": "INV",
+    "No": "OF-26-0412",
+    "Dt": "17/04/2026"
+  },
+  "SellerDtls": {
+    "Gstin": "06AAEFO3390B1ZL",
+    "LglNm": "Orion Fasteners",
+    "Addr1": "Faridabad, Haryana",
+    "Loc": "Faridabad",
+    "Stcd": "06"
+  },
+  "BuyerDtls": {
+    "Gstin": "27AAECM7310K1ZE",
+    "LglNm": "Meridian Precision Components Pvt. Ltd.",
+    "Pos": "27",
+    "Addr1": "Gat No. 112, Chakan Industrial Area Phase II, Pune, Maharashtra 410501",
+    "Loc": "Chakan",
+    "Pin": 410501,
+    "Stcd": "27"
+  },
+  "ItemList": [
+    {
+      "SlNo": "1",
+      "PrdDesc": "High Tensile Stud M12x80 (Box/50)",
+      "IsServc": "N",
+      "HsnCd": "7318",
+      "Qty": 6.0,
+      "Unit": "BOX",
+      "UnitPrice": 2150.0,
+      "TotAmt": 12900.0,
+      "AssAmt": 12900.0,
+      "GstRt": 18.0,
+      "CgstAmt": 0.0,
+      "SgstAmt": 0.0,
+      "IgstAmt": 2322.0,
+      "TotItemVal": 15222.0
+    }
+  ],
+  "ValDtls": {
+    "AssVal": 12900.0,
+    "CgstVal": 0.0,
+    "SgstVal": 0.0,
+    "IgstVal": 2322.0,
+    "RndOffAmt": 0.0,
+    "TotInvVal": 15222.0
+  },
+  "PayDtls": {
+    "Nm": "Orion Fasteners",
+    "AccDet": "50200044102233",
+    "Mode": "NEFT",
+    "FinInsBr": "ZEPH0004410"
+  },
+  "RefDtls": {
+    "ContrDtls": [
+      {
+        "PORefr": "PO-2026-0122"
+      }
+    ]
+  }
+}
