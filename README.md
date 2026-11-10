@@ -179,3 +179,9 @@ Setup is unchanged: `make setup`, `make test` (offline), `make predict`.
   `submission/RULINGS.md` explains each one.
 - Set `LLM_MODEL` to a real model ID, such as `claude-sonnet-5-5`. An unknown model now shows up as `unpriced_llm_calls`
   in `/api/stats` instead of being counted as free.
+- Part 3: `make eval-score` re-scores the recorded live runs in `submission/eval_runs/` offline. `make eval-live`
+  repeats them with real, billed calls (about $5 on `claude-opus-5-5`). See `submission/EVAL_REPORT.md`.
+- Part 4 (evidence-linked review): `make dev`, then the UI's queue. Every extracted value links to its exact place in
+  the original text (or says "not sure"), each review reason is explained with its evidence, and `j`/`k`/`a`/`r`/`n`
+  drive the queue. `predictions.jsonl` now carries the optional `evidence` field for values located with certainty.
+  An existing database gets its two new columns automatically.

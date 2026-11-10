@@ -1,12 +1,16 @@
 """HTTP API used by the reviewer UI.  Run: uvicorn ledgerline.api:app --reload"""
 from __future__ import annotations
 
+import json
+from datetime import date
+
 from fastapi import Depends, FastAPI, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from . import db
 from .config import USD_TO_INR, get_settings
+from .explain import SEVERITY, TITLES
 from .pipeline import process_document
 from .reference import load_reference
 
@@ -52,6 +56,48 @@ def list_invoices(org_id: str = Depends(get_org), conn=Depends(get_conn)):
         (org_id,),
     ).fetchall()
     return [dict(r) for r in rows]
+
+
+@app.get("/api/queue")
+def queue(org_id: str = Depends(get_org), conn=Depends(get_conn)):
+    """What needs a person, in the order a reviewer should take it (Part 4A).
+
+    1. Documents that need review, worst reason first (fraud risk before arithmetic before paperwork), oldest
+       invoice first within that: MSME vendors must be paid within 45 days of the invoice.
+    2. Clean documents waiting for approval, partly-approved ones first (a second approver is waiting), then
+       oldest first.
+    Decided documents (approved, rejected) are not in the queue.
+    """
+    rows = conn.execute(
+        "SELECT i.id, i.document_id, i.supplier_name, i.invoice_number, i.invoice_date, i.currency, i.total, "
+        "i.status, i.needs_review, i.review_reasons_json, i.required_approvals, i.document_type, "
+        "(SELECT COUNT(DISTINCT a.user_id) FROM approvals a WHERE a.invoice_id = i.id) AS approvals "
+        "FROM invoices i WHERE i.org_id = ? AND i.status NOT IN ('approved', 'rejected')",
+        (org_id,),
+    ).fetchall()
+    today = date.today()
+    items = []
+    for r in rows:
+        item = dict(r)
+        reasons = json.loads(item.pop("review_reasons_json") or "[]")
+        ranked = sorted(reasons, key=lambda c: SEVERITY.index(c) if c in SEVERITY else len(SEVERITY))
+        item["review_reasons"] = ranked
+        item["reason_titles"] = [TITLES.get(c, c) for c in ranked]
+        item["needs_review"] = bool(item["needs_review"])
+        item["bucket"] = "review" if item["needs_review"] else "approve"
+        try:
+            item["days_since_invoice"] = (today - date.fromisoformat(item["invoice_date"])).days
+        except (TypeError, ValueError):
+            item["days_since_invoice"] = None
+        worst = SEVERITY.index(ranked[0]) if ranked and ranked[0] in SEVERITY else len(SEVERITY)
+        age = -(item["days_since_invoice"] or 0)
+        item["_sort"] = ((0, worst, age, item["id"]) if item["needs_review"]
+                         else (1, 0 if item["approvals"] else 1, age, item["id"]))
+        items.append(item)
+    items.sort(key=lambda i: i.pop("_sort"))
+    return {"counts": {"review": sum(i["bucket"] == "review" for i in items),
+                       "approve": sum(i["bucket"] == "approve" for i in items)},
+            "items": items}
 
 
 def _invoice_for_org(conn, invoice_id: int, org_id: str) -> dict:

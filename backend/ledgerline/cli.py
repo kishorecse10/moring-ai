@@ -14,6 +14,7 @@ import tempfile
 from pathlib import Path
 
 from . import db
+from .evidence import contract_evidence
 from .pipeline import process_document
 from .reference import load_reference
 
@@ -41,6 +42,9 @@ def to_contract(invoice: dict) -> dict:
     out["review_reasons"] = invoice["review_reasons"]
     out["required_approvals"] = invoice["required_approvals"]
     out["usage"] = invoice["usage"]
+    evidence = contract_evidence(invoice.get("evidence") or {})
+    if evidence:
+        out["evidence"] = evidence  # optional in the contract: only fields we are sure of
     return out
 
 

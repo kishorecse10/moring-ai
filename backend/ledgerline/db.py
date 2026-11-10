@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS invoices (
     warnings_json TEXT,
     needs_review INTEGER NOT NULL DEFAULT 0,
     review_reasons_json TEXT,
+    evidence_json TEXT,
+    explanations_json TEXT,
     required_approvals INTEGER NOT NULL DEFAULT 1,
     status TEXT NOT NULL DEFAULT 'ready_for_approval',
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
@@ -81,11 +83,24 @@ UNIQUE_INDEXES = [
 ]
 
 
+# Columns added after v0.3. CREATE TABLE IF NOT EXISTS doesn't touch an existing table, so add them if missing.
+ADDED_COLUMNS = {"invoices": [("evidence_json", "TEXT"), ("explanations_json", "TEXT")]}
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    for table, columns in ADDED_COLUMNS.items():
+        existing = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+        for name, kind in columns:
+            if name not in existing:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {name} {kind}")
+
+
 def connect(path: str) -> sqlite3.Connection:
     # isolation_level=None: we open transactions explicitly (BEGIN IMMEDIATE) where it matters.
     conn = sqlite3.connect(path, check_same_thread=False, timeout=30, isolation_level=None)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    _migrate(conn)
     for statement in UNIQUE_INDEXES:
         try:
             conn.execute(statement)
@@ -101,8 +116,9 @@ def get_invoice(conn: sqlite3.Connection, invoice_id: int) -> dict | None:
     if row is None:
         return None
     inv = dict(row)
-    for col in ("line_items_json", "warnings_json", "review_reasons_json"):
-        inv[col.removesuffix("_json")] = json.loads(inv.pop(col) or "[]")
+    for col in ("line_items_json", "warnings_json", "review_reasons_json", "explanations_json"):
+        inv[col.removesuffix("_json")] = json.loads(inv.pop(col, None) or "[]")
+    inv["evidence"] = json.loads(inv.pop("evidence_json", None) or "{}")
     inv["needs_review"] = bool(inv["needs_review"])
     inv["approvals"] = [dict(r) for r in conn.execute(
         "SELECT user_id, note, created_at FROM approvals WHERE invoice_id = ? ORDER BY id", (invoice_id,))]

@@ -12,6 +12,8 @@ import sqlite3
 from decimal import Decimal
 
 from . import db
+from .evidence import locate
+from .explain import explain
 from .extraction import ExtractionError, extract
 from .grounding import ungrounded_fields
 from .llm.pricing import cost_usd
@@ -177,14 +179,18 @@ def process_document(
             reasons += run_checks(conn, ref, inv, org_id, received_on=received_date(raw_text))
 
         reasons = list(dict.fromkeys(reasons))
+        # Where each value came from, and each reason in plain language (Part 4A). Neither changes routing.
+        evidence = locate(raw_text, inv, month_first=vendor_is_us(find_vendor(ref, inv))) if inv else {}
+        explanations = explain(reasons, inv, raw_text, ref, conn, org_id, evidence, warnings,
+                               received_date(raw_text))
         needs_review = bool(reasons)
         status = "needs_review" if needs_review else "ready_for_approval"
         cur = conn.execute(
             """INSERT INTO invoices (org_id, document_id, filename, raw_text, document_type, supplier_name,
                    supplier_gstin, invoice_number, invoice_date, currency, subtotal, cgst, sgst, igst, round_off,
                    total, bank_account, ifsc, po_number, notes, line_items_json, warnings_json, needs_review,
-                   review_reasons_json, required_approvals, status)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   review_reasons_json, required_approvals, status, evidence_json, explanations_json)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 org_id, document_id, filename, raw_text,
                 inv.document_type if inv else None,
@@ -201,6 +207,7 @@ def process_document(
                 inv.notes if inv else None,
                 json.dumps([_line_item_json(i) for i in inv.line_items] if inv else []),
                 json.dumps(warnings), int(needs_review), json.dumps(reasons), required_approvals(inv), status,
+                json.dumps(evidence), json.dumps(explanations),
             ),
         )
         invoice_id = cur.lastrowid

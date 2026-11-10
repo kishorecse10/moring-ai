@@ -200,14 +200,15 @@ def duplicate_key(currency, gstin, name, number, invoice_date: date | None) -> t
     return key, number, financial_year(invoice_date)
 
 
-def check_duplicate(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice, org_id: str = "meridian") -> list[str]:
-    """Same supplier key, normalised invoice number and FY as a paid invoice, or as an invoice processed earlier
-    (earlier in the batch, since batches run in document_id order). Credit notes are not checked."""
+def find_duplicate(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice, org_id: str = "meridian") -> dict | None:
+    """The earlier invoice this one duplicates: same supplier key, normalised invoice number and FY as a paid
+    invoice, or as an invoice processed earlier (earlier in the batch, since batches run in document_id order).
+    Credit notes are not checked. Returns {"source": "paid", **row} or {"source": "processed", **row}."""
     if inv.document_type != "invoice":
-        return []
+        return None
     key = duplicate_key(inv.currency, inv.supplier_gstin, inv.supplier_name, inv.invoice_number, inv.invoice_date)
     if key is None:
-        return []
+        return None
     for paid in ref.paid_invoices:
         paid_currency = "INR" if (paid.get("supplier_gstin") or "").strip() else "FOREIGN"
         try:
@@ -216,17 +217,21 @@ def check_duplicate(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice, 
             continue
         if duplicate_key(paid_currency, paid.get("supplier_gstin"), paid.get("supplier_name"),
                          paid.get("invoice_number"), paid_date) == key:
-            return ["duplicate"]
+            return {"source": "paid", **paid}
     rows = conn.execute(
-        "SELECT currency, supplier_gstin, supplier_name, invoice_number, invoice_date FROM invoices "
-        "WHERE org_id = ? AND document_type = 'invoice' AND invoice_date IS NOT NULL",
+        "SELECT id, document_id, currency, supplier_gstin, supplier_name, invoice_number, invoice_date, total, status "
+        "FROM invoices WHERE org_id = ? AND document_type = 'invoice' AND invoice_date IS NOT NULL",
         (org_id,),
     ).fetchall()
     for row in rows:
         if duplicate_key(row["currency"], row["supplier_gstin"], row["supplier_name"], row["invoice_number"],
                          date.fromisoformat(row["invoice_date"])) == key:
-            return ["duplicate"]
-    return []
+            return {"source": "processed", **dict(row)}
+    return None
+
+
+def check_duplicate(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice, org_id: str = "meridian") -> list[str]:
+    return ["duplicate"] if find_duplicate(conn, ref, inv, org_id) else []
 
 
 def check_bank_details(inv: Invoice, vendor: dict | None) -> list[str]:
@@ -277,19 +282,24 @@ def _paragraph_around(text: str, index: int) -> str:
     return text[start + 1 if start != -1 else 0: end if end != -1 else len(text)]
 
 
-def check_suspicious_content(raw_text: str) -> list[str]:
-    """Text addressed to automated systems or AI, or embedded HTML/script markup (AP_POLICY.md section 3).
+def suspicious_matches(raw_text: str) -> list[tuple[int, int, str]]:
+    """Every stretch of text that makes a document `suspicious_content`, as (start, end, kind).
 
+    Text addressed to automated systems or AI, or embedded HTML/script markup (AP_POLICY.md section 3).
     With NARROW_SUSPICIOUS on, text addressed to an automated system counts only if the same paragraph tries to
     steer processing (disp_04's "please quote the invoice number in the remittance advice" doesn't).
     """
-    if _MARKUP.search(raw_text) or _INJECTION.search(raw_text):
-        return ["suspicious_content"]
+    found = [(m.start(), m.end(), "markup") for m in _MARKUP.finditer(raw_text)]
+    found += [(m.start(), m.end(), "instruction") for m in _INJECTION.finditer(raw_text)]
     narrow = flags.enabled(flags.NARROW_SUSPICIOUS)
     for match in _ADDRESSED_TO_MACHINES.finditer(raw_text):
         if not narrow or _STEERING.search(_paragraph_around(raw_text, match.start())):
-            return ["suspicious_content"]
-    return []
+            found.append((match.start(), match.end(), "addressed_to_automation"))
+    return sorted(found)
+
+
+def check_suspicious_content(raw_text: str) -> list[str]:
+    return ["suspicious_content"] if suspicious_matches(raw_text) else []
 
 
 def run_checks(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice, org_id: str = "meridian",
