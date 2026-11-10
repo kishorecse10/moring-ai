@@ -109,40 +109,31 @@ The server-side half of A already existed from Part 1: approve and reject are tr
 
 ## Replies to stakeholders
 
-> **Note for me:** the README requires these replies to be in my own words, so I'll write them myself. Below are only the facts and numbers each reply should rest on, taken from my own runs.
+<!-- DRAFT written with Claude. The README requires these replies in my own words: rewrite before submitting, and note it in AI_USAGE.md. -->
 
 ### Anita Rao, CFO
-- **STP under ₹10,000: not now.** Policy 4.3 forbids automatic approval. The dev set can only bound the miss rate below about 21%.
-- **What would make me agree:** four weeks of audit with zero misses in that segment, plus sign-in and a Finance Controller amendment. That would save about 1,040 documents and ₹88,000 of AP time a month.
-- **The "fix the GSTIN" ask is declined.** The UI now names the vendor one character away and marks it "possibly OCR, possibly a look-alike", so it becomes a 30-second check instead of a bounce-back.
-- **Cost:** ₹4,430 a month of LLM spend vs about ₹42,000 for v0.3's design.
+
+I won't turn on straight-through processing for invoices under ₹10,000 yet. Policy 4.3 forbids automatic approval, and my evaluation had only 13 problem documents: zero misses there still leaves a possible miss rate of up to 21%. A clean invoice now needs one click, not a ₹85 review. After four weeks of auditing 50 ready invoices a week, I'll bring Sunil the data for a flagged policy change. I won't let the AI fix GSTINs: dev_010 is one character away from Orion Fasteners' real GSTIN and is an impostor. Instead, the reviewer is shown the near-match, so it's a 30-second check. For the board: ₹1.48 per document, and 0 of 13 problem invoices routed as ready.
 
 ### Farhan Sheikh, Head of AP
-- **"Show the source":** done (Part 4). Every value links to its exact text, and the system says "not sure" rather than guessing.
-- **Double payments:** fixed. 8 parallel approvals produce 1 payment.
-- **Bank changes:** always reviewed, with an explicit call-back instruction. The phone-number field needs Sunil (see policy proposal 7).
-- **"Most accurate model":** Opus and the cheaper model scored identically on routing in my runs. Accuracy came from moving the rules into code, not from the model.
+
+Done: reviewers can click any extracted value to see the exact text it came from. Where Ledgerline can't be sure, it says "not sure" instead of highlighting something plausible. The queue puts bank changes and suspicious documents first. The double payment is fixed on the server: eight simultaneous approvals produce one payment. Treasury needs to reconcile any duplicates already in the database. Every bank change goes to review with "phone the vendor back on a number from our records" on screen, but the phone field needs Sunil's agreement. On the model: paying for accuracy didn't help. On Opus, the original design still missed both duplicate invoices. It was the rules moving into code that caught them.
 
 ### Deepak Menon, CTO
-- **The bill was right; the dashboard was 1000× low.** Prices were per thousand, not per million. $165 for 2,400 documents is ₹6.05 each, which matches the measured cost of v0.3's first call (₹6.48).
-- **Now:** ₹1.48 per document and p95 7.3 s on Opus. A Sonnet re-run (about $0.50) should confirm about ₹0.54. No new infrastructure.
-- **Fine-tuning:** not needed. Extraction is already 251/252 fields correct, and the failures were in routing and code, which fine-tuning doesn't touch.
+
+Anthropic's bill is right. The dashboard's price table was 1,000 times too low ($0.004 instead of $4 per million tokens), which is why it said ₹15. $165 for 2,400 documents is ₹6.05 each. That matches what I measured for the old design's first call (₹6.48): the second call crashed before running. Now it's one call: ₹1.48 per document and p95 7.3 seconds on Opus, on the same SQLite stack, with no new infrastructure. I wouldn't fine-tune. On unseen documents, 251 of 252 extracted fields were right, and that one difference is a labelling disagreement. The failures were routing and code bugs, which fine-tuning can't fix. It would also add a model to retrain every time the policy changes.
 
 ### Priya Natarajan, Data Protection Officer
-- **Before:** every call sent the vendor master (38 bank accounts), the document's own account number and three labelled invoices, twice per document.
-- **Now:** one call per document, with the document text only and account numbers masked to their last 4 digits. The test is `test_no_bank_account_number_is_sent_to_the_provider`.
-- **Known gap:** an account number printed with spaces isn't masked.
+
+Yes, it was breaching policy 5.1. Each document went to Anthropic twice. Each request carried the whole vendor master, including 38 vendors' bank account numbers, the full AP policy, three complete past invoices with their account numbers, and the document's own account number. Now there is one request per document: fixed instructions plus the document's text, with every 9–18 digit number replaced by a placeholder showing only its last four digits. The real digits are restored inside our systems. The vendor master, payment history, policy and past invoices are no longer sent, and a test fails if any vendor-master account number appears in the request. One gap remains: an account number printed with spaces isn't masked yet. I'll close that before rollout.
 
 ### Sunil Joshi, Finance Controller
-- **Review load:** 0/11 unnecessary reviews in each run, against a genuine problem rate of about 13%. Target: a review rate near 13%, alarm above 20%.
-- **No policy edits.** Every departure is behind a flag that is off by default, and each is a proposal below.
-- **The call-back workflow he asked to see:** the bank-change reason card (Part 4) is the workflow that would use the phone field.
+
+I agree: "send everything to review" isn't an answer. Across three runs, none of the 11 clean dev invoices went to review. In production I'll alert if the review rate goes above 20%, against the 13% that genuinely need it. Your policy is unchanged. My three departures are behind flags that are off by default, and eight proposals are listed for you to decide. The queue now shows each invoice's age and puts the oldest first within each risk level, for the 45-day MSME rule. You asked to see the workflow before adding a phone field. It's the bank-change card in the review screen: it tells the reviewer to call back, and the call would be recorded in the approval's audit note.
 
 ### Ravi Kulkarni, contractor
-- **His argument is real:** Finance changes the policy often and has no developer.
-- **The answer is in my own runs:** with the policy in the prompt, Opus missed both duplicates. It *cannot* see the payment history, and it said so itself. A document can also talk to it (dev_012).
-- **What I'd offer instead:** thresholds and lists as configuration Finance can edit, such as the 90 days, ₹5 lakh and ₹1.00 tolerances. Rule changes stay as small, tested code changes.
-- **His instinct on name matching:** the model's flexibility is kept where it is safe, in reading layouts and names, not in deciding.
+
+You're right that Finance changes the policy often, and that the model reads messy layouts better than code. It still does all the reading. But I measured your design on Opus, and it missed both duplicate invoices. It never sees the payment history or the rest of the batch, and it said so in its own reply while still marking them ready. dev_012 also shows a vendor can write instructions straight to it. A same-day, untested markdown edit to a payment control is a risk, not a feature. What I'll do instead: put thresholds like the 90 days, ₹5 lakh and ₹1.00 tolerance in configuration Finance can edit, and re-run the free offline eval on every change.
 
 ## Policy changes I propose
 
