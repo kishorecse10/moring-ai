@@ -1,0 +1,15 @@
+{
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "code_root": "/home/kishore-17494/IdeaProjects/Personal/moring-ai/backend",
+  "commit": "e10a4c8",
+  "input": "/home/kishore-17494/IdeaProjects/Personal/moring-ai/data/invoices/disputed",
+  "documents": 6,
+  "strip_fences": false,
+  "flags": {
+    "LEDGERLINE_FLAG_NARROW_SUSPICIOUS": "1",
+    "LEDGERLINE_FLAG_LINE_ARITHMETIC": "1",
+    "LEDGERLINE_FLAG_DATE_AFTER_RECEIPT": "1"
+  },
+  "run_at": "2026-11-10T16:13:53"
+}

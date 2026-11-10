@@ -9,7 +9,7 @@ Model used for every real run below: **`claude-sonnet-5-5`** (Anthropic API), ru
 |---|---|---|
 | Lines written by `cli predict` (dev) | **0 / 24** (every document silently `[skip]`ped) | 24 / 24 |
 | Dev documents routed exactly as labelled | 0 written. Had the JSON parsed, 22/24; the 2 misses are both duplicates routed *ready* | **24 / 24** |
-| Needed review but routed ready | 2 of 15 (dev_015, dev_019), if parsed | **0 of 15** |
+| Needed review but routed ready | 2 of 13 (dev_015, dev_019), if parsed | **0 of 13** |
 | LLM calls per document | 1 made, 2 designed (the verify pass never ran because the parse failed first) | 1 |
 | Tokens per call (input / output) | ~8,900 / ~1,900 | ~1,300 / ~370 |
 | Latency, first call only | p50 13.2 s, p95 16.4 s | p50 2.6 s, p95 3.5 s |

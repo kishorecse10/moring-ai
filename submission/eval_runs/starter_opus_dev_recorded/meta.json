@@ -1,0 +1,11 @@
+{
+  "provider": "anthropic",
+  "model": "claude-opus-5-5",
+  "code_root": "/home/kishore-17494/.cache/opencode-tmp/claude-1001/-home-kishore-17494-IdeaProjects-Personal-moring-ai/c9b908e0-cd2b-442d-9208-8be5508d348d/scratchpad/starter/backend",
+  "commit": null,
+  "input": "/home/kishore-17494/IdeaProjects/Personal/moring-ai/data/invoices/dev",
+  "documents": 24,
+  "strip_fences": true,
+  "flags": {},
+  "run_at": "2026-11-10T16:15:32"
+}

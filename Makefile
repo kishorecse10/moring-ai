@@ -1,7 +1,7 @@
 VENV := backend/.venv
 PYTHON ?= python3
 
-.PHONY: setup test api ui dev predict predict-flags eval
+.PHONY: setup test api ui dev predict predict-flags eval eval-live eval-score
 
 setup:
 	$(PYTHON) -m venv backend/.venv
@@ -32,3 +32,25 @@ predict-flags:
 
 eval:
 	cd backend && .venv/bin/python eval/run_eval.py
+
+# Part 3 (submission/EVAL_REPORT.md). eval-live makes REAL, billed LLM calls with the model in .env; eval-score is offline.
+RUNS := ../submission/eval_runs
+STARTER_TREE ?= $(CURDIR)/.eval-starter-tree
+
+eval-live:
+	rm -rf $(STARTER_TREE) && mkdir -p $(STARTER_TREE) && git archive e2f4ac2 backend data docs | tar -x -C $(STARTER_TREE)
+	cd backend && .venv/bin/python eval/run_live.py --code-root $(STARTER_TREE)/backend --input ../data/invoices/dev --out $(RUNS)/starter_opus_dev_recorded
+	cd backend && for r in 1 2 3; do .venv/bin/python eval/run_live.py --code-root . --input ../data/invoices/dev --out $(RUNS)/mine_opus_dev_r$$r; done
+	cd backend && $(FLAGS_ON) .venv/bin/python eval/run_live.py --code-root . --input ../data/invoices/disputed --out $(RUNS)/mine_opus_disputed_flags
+
+# Offline: rebuild the starter's two views from its recorded replies, then score everything.
+eval-score:
+	rm -rf $(STARTER_TREE) && mkdir -p $(STARTER_TREE) && git archive e2f4ac2 backend data docs | tar -x -C $(STARTER_TREE)
+	cd backend && .venv/bin/python eval/run_live.py --code-root $(STARTER_TREE)/backend --input ../data/invoices/dev \
+		--out $(RUNS)/starter_opus_dev_as_shipped --replay $(RUNS)/starter_opus_dev_recorded/calls.jsonl > /dev/null
+	cd backend && .venv/bin/python eval/run_live.py --code-root $(STARTER_TREE)/backend --input ../data/invoices/dev \
+		--out $(RUNS)/starter_opus_dev_parsed --replay $(RUNS)/starter_opus_dev_recorded/calls.jsonl --strip-fences > /dev/null
+	cd backend && .venv/bin/python eval/score.py starter_as_shipped=$(RUNS)/starter_opus_dev_as_shipped \
+		starter_parsed=$(RUNS)/starter_opus_dev_parsed \
+		mine#1=$(RUNS)/mine_opus_dev_r1 mine#2=$(RUNS)/mine_opus_dev_r2 mine#3=$(RUNS)/mine_opus_dev_r3 \
+		--json $(RUNS)/scores.json
