@@ -18,7 +18,7 @@ from .llm.pricing import cost_usd
 from .models import Invoice, LineItem
 from .parsing import parse_amount, parse_date, parse_lenient_number
 from .reference import ReferenceData
-from .validation import check_suspicious_content, find_vendor, run_checks, vendor_is_us
+from .validation import check_suspicious_content, find_vendor, received_date, run_checks, vendor_is_us
 
 log = logging.getLogger(__name__)
 
@@ -174,7 +174,7 @@ def process_document(
             ungrounded = ungrounded_fields(raw_text, inv, month_first=month_first)
             if ungrounded:
                 processing_error("Extracted values not found verbatim in the document: " + ", ".join(ungrounded))
-            reasons += run_checks(conn, ref, inv, org_id)
+            reasons += run_checks(conn, ref, inv, org_id, received_on=received_date(raw_text))
 
         reasons = list(dict.fromkeys(reasons))
         needs_review = bool(reasons)

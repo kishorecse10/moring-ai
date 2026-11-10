@@ -171,4 +171,11 @@ submission/               templates for your write-ups
 
 ## Running my version
 
-_Describe anything that changed about setup or commands._
+Setup is unchanged: `make setup`, `make test` (offline), `make predict`.
+
+- `make predict` follows `docs/AP_POLICY.md` v3.2 as written.
+- `make predict-flags` runs the same batch with the Part 2 policy flags on. Each can also be switched on alone:
+  `LEDGERLINE_FLAG_DATE_AFTER_RECEIPT=1`, `LEDGERLINE_FLAG_LINE_ARITHMETIC=1`, `LEDGERLINE_FLAG_NARROW_SUSPICIOUS=1`.
+  `submission/RULINGS.md` explains each one.
+- Set `LLM_MODEL` to a real model ID, such as `claude-sonnet-5-5`. An unknown model now shows up as `unpriced_llm_calls`
+  in `/api/stats` instead of being counted as free.

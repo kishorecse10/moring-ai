@@ -10,7 +10,10 @@ import re
 import sqlite3
 from datetime import date
 from decimal import Decimal
+from email.parser import HeaderParser
+from email.utils import parsedate_to_datetime
 
+from . import flags
 from .models import Invoice
 from .reference import ReferenceData
 
@@ -24,6 +27,8 @@ REASON_CODES = (
     "credit_note", "duplicate", "gstin_invalid", "vendor_unknown", "vendor_new", "bank_details_changed",
     "tax_type_mismatch", "totals_mismatch", "foreign_currency", "suspicious_content", "processing_error",
 )
+# Only ever emitted when their flag is on (see flags.py and submission/RULINGS.md).
+FLAGGED_REASON_CODES = ("line_arithmetic_mismatch", "date_after_receipt")
 
 
 # --- normalisation (AP_POLICY.md section 1) ---------------------------------------------------------------
@@ -116,11 +121,48 @@ def check_vendor(vendor: dict | None) -> list[str]:
     return [] if vendor else ["vendor_unknown"]
 
 
-def check_vendor_new(inv: Invoice, vendor: dict | None) -> list[str]:
+def check_vendor_new(inv: Invoice, vendor: dict | None, received_on: date | None = None) -> list[str]:
     if not vendor or not inv.invoice_date or not vendor.get("onboarded_on"):
         return []
     onboarded = date.fromisoformat(vendor["onboarded_on"].strip())
-    return ["vendor_new"] if (inv.invoice_date - onboarded).days < NEW_VENDOR_DAYS else []
+    as_of = inv.invoice_date
+    if flags.enabled(flags.DATE_AFTER_RECEIPT) and received_on is not None:
+        # disp_06: a new vendor's invoice post-dated by two months would otherwise clear the 90-day window.
+        as_of = min(as_of, received_on)
+    return ["vendor_new"] if (as_of - onboarded).days < NEW_VENDOR_DAYS else []
+
+
+def received_date(raw_text: str, processed_on: date | None = None) -> date | None:
+    """When we got the document: an email's Date header, otherwise the day we process it."""
+    head = raw_text[:4000]
+    if re.match(r"(?i)^(from|to|subject|date|received|return-path|message-id)\s*:", head.lstrip()):
+        headers = HeaderParser().parsestr(head, headersonly=True)
+        if headers.get("Date"):
+            try:
+                return parsedate_to_datetime(headers["Date"]).date()
+            except (TypeError, ValueError):
+                pass
+    return processed_on or date.today()
+
+
+def check_date_after_receipt(inv: Invoice, received_on: date | None) -> list[str]:
+    """Flagged rule (DATE_AFTER_RECEIPT): an invoice can't be dated after the day it reached us."""
+    if not flags.enabled(flags.DATE_AFTER_RECEIPT) or received_on is None or inv.invoice_date is None:
+        return []
+    return ["date_after_receipt"] if inv.invoice_date > received_on else []
+
+
+def check_line_arithmetic(inv: Invoice) -> list[str]:
+    """Flagged rule (LINE_ARITHMETIC): quantity x unit price must match the printed line amount within ₹1.00.
+    The policy's totals check sums the printed line amounts, so a padded line amount (disp_05) passes it."""
+    if not flags.enabled(flags.LINE_ARITHMETIC):
+        return []
+    for item in inv.line_items:
+        if item.quantity is None or item.unit_price is None or item.amount is None:
+            continue
+        if abs(item.quantity * item.unit_price - item.amount) > TOTALS_TOLERANCE:
+            return ["line_arithmetic_mismatch"]
+    return []
 
 
 def check_tax_type(inv: Invoice, ref: ReferenceData) -> list[str]:
@@ -210,31 +252,60 @@ _MARKUP = re.compile(
 _ADDRESSED_TO_MACHINES = re.compile(
     r"\b(AI|LLM|GPT|ChatGPT|Claude)\b(\s+(assistant|system|model|agent|tool)s?)?"
     r"|\bartificial intelligence\b|\blanguage models?\b"
-    r"|\bautomat(ed|ic|ion)\s+(\w+\s+){0,3}(processing|system|software|assistant|tool|approval)s?\b"
-    r"|\b(ignore|disregard)\s+(all\s+|any\s+|the\s+)?(previous|prior|above)\s+instructions\b"
+    r"|\bautomat(ed|ic|ion)\s+(\w+\s+){0,3}(processing|system|software|assistant|tool|approval)s?\b",
+    re.IGNORECASE,
+)
+# Suspicious however they are phrased.
+_INJECTION = re.compile(
+    r"\b(ignore|disregard)\s+(all\s+|any\s+|the\s+)?(previous|prior|above)\s+instructions\b"
     r"|\bsystem prompt\b|\brequires_review\b|\breview_reasons\b|\bneeds_review\b",
+    re.IGNORECASE,
+)
+# What an attempt to steer processing talks about. Used only with NARROW_SUSPICIOUS.
+_STEERING = re.compile(
+    r"\b(approv\w*|pre-?verif\w*|verif(y|ied)|review\w*|skip\w*|bypass\w*|ignor\w*|disregard\w*|overrid\w*"
+    r"|do\s+not\s+(mention|flag|check|report|escalate)|don'?t\s+(mention|flag|check|report)|instruct\w*"
+    r"|bank|account|a/c|ifsc|beneficiar\w*|payee|remit\s+to|pay\s+(to|into)|set\s+\w+\s+to|mark\w*\s+as"
+    r"|priority|urgent\w*|authori[sz]\w*|exempt\w*|whitelist\w*|trusted)\b",
     re.IGNORECASE,
 )
 
 
+def _paragraph_around(text: str, index: int) -> str:
+    start = text.rfind("\n\n", 0, index)
+    end = text.find("\n\n", index)
+    return text[start + 1 if start != -1 else 0: end if end != -1 else len(text)]
+
+
 def check_suspicious_content(raw_text: str) -> list[str]:
-    """Text addressed to automated systems or AI, or embedded HTML/script markup (AP_POLICY.md section 3)."""
-    if _MARKUP.search(raw_text) or _ADDRESSED_TO_MACHINES.search(raw_text):
+    """Text addressed to automated systems or AI, or embedded HTML/script markup (AP_POLICY.md section 3).
+
+    With NARROW_SUSPICIOUS on, text addressed to an automated system counts only if the same paragraph tries to
+    steer processing (disp_04's "please quote the invoice number in the remittance advice" doesn't).
+    """
+    if _MARKUP.search(raw_text) or _INJECTION.search(raw_text):
         return ["suspicious_content"]
+    narrow = flags.enabled(flags.NARROW_SUSPICIOUS)
+    for match in _ADDRESSED_TO_MACHINES.finditer(raw_text):
+        if not narrow or _STEERING.search(_paragraph_around(raw_text, match.start())):
+            return ["suspicious_content"]
     return []
 
 
-def run_checks(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice, org_id: str = "meridian") -> list[str]:
+def run_checks(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice, org_id: str = "meridian",
+               received_on: date | None = None) -> list[str]:
     vendor = find_vendor(ref, inv)
     reasons = (
         check_credit_note(inv)
         + check_foreign_currency(inv)
         + check_gstin(inv)
         + check_vendor(vendor)
-        + check_vendor_new(inv, vendor)
+        + check_vendor_new(inv, vendor, received_on)
         + check_tax_type(inv, ref)
         + check_totals(inv)
         + check_duplicate(conn, ref, inv, org_id)
         + check_bank_details(inv, vendor)
+        + check_line_arithmetic(inv)
+        + check_date_after_receipt(inv, received_on)
     )
     return list(dict.fromkeys(reasons))
