@@ -23,6 +23,15 @@ TEXT_FIELDS = ["document_type", "supplier_name", "supplier_gstin", "invoice_numb
                "bank_account", "ifsc", "po_number"]
 
 
+def error_line(document_id: str) -> dict:
+    """The contract line for a document we couldn't even persist. Never skip a document."""
+    out = {"document_id": document_id, **{f: None for f in TEXT_FIELDS}, **{f: None for f in MONEY_FIELDS}}
+    out.update(document_type="invoice", line_items=[], needs_review=True, review_reasons=["processing_error"],
+               required_approvals=2,
+               usage={"llm_calls": 0, "input_tokens": 0, "output_tokens": 0, "cost_inr": 0.0, "latency_ms": 0})
+    return out
+
+
 def to_contract(invoice: dict) -> dict:
     out = {"document_id": invoice["document_id"]}
     out.update({f: invoice[f] for f in TEXT_FIELDS})
@@ -39,19 +48,24 @@ def predict(args: argparse.Namespace) -> None:
     ref = load_reference(args.reference)
     db_path = args.db or str(Path(tempfile.mkdtemp(prefix="ledgerline-")) / "predict.db")
     conn = db.connect(db_path)
-    documents = sorted(p for p in Path(args.input).iterdir() if p.suffix in SUPPORTED_SUFFIXES)
-    written = 0
+    # document_id order (policy section 3: batches are processed in document_id order).
+    documents = sorted((p for p in Path(args.input).iterdir()
+                        if p.is_file() and p.suffix.lower() in SUPPORTED_SUFFIXES), key=lambda p: (p.stem, p.name))
+    errors = 0
     with open(args.output, "w", encoding="utf-8") as out:
         for path in documents:
             try:
-                invoice = process_document(conn, ref, path.read_text(encoding="utf-8"), path.stem,
-                                           filename=path.name)
-            except Exception as exc:  # keep the batch going
-                print(f"[skip] {path.name}: {exc}", file=sys.stderr)
-                continue
-            out.write(json.dumps(to_contract(invoice), ensure_ascii=False) + "\n")
-            written += 1
-    print(f"wrote {written}/{len(documents)} predictions to {args.output}")
+                # errors="replace": a badly encoded file is still processed, and the pipeline flags it.
+                raw_text = path.read_bytes().decode("utf-8", errors="replace")
+                line = to_contract(process_document(conn, ref, raw_text, path.stem, filename=path.name))
+            except Exception as exc:  # never skip a document (OUTPUT_CONTRACT.md)
+                print(f"[processing_error] {path.name}: {exc!r}", file=sys.stderr)
+                line = error_line(path.stem)
+            if "processing_error" in line["review_reasons"]:
+                errors += 1
+            out.write(json.dumps(line, ensure_ascii=False) + "\n")
+    print(f"wrote {len(documents)}/{len(documents)} predictions to {args.output} "
+          f"({errors} with processing_error)")
 
 
 def main(argv: list[str] | None = None) -> None:

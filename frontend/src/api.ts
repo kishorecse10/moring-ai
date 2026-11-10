@@ -15,9 +15,9 @@ export type InvoiceSummary = {
 
 export type LineItem = {
   description: string;
-  quantity: number | null;
-  unit_price: number | null;
-  amount: number;
+  quantity: string | null;
+  unit_price: string | null;
+  amount: string | null;
 };
 
 export type Invoice = InvoiceSummary & {
@@ -47,14 +47,20 @@ export type DecisionResult = {
 
 const orgHeaders = { "X-Org-Id": ORG_ID };
 
-export async function listInvoices(): Promise<InvoiceSummary[]> {
-  const response = await fetch("/api/invoices", { headers: orgHeaders });
+async function ok<T>(response: Response): Promise<T> {
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.detail ?? `Request failed (HTTP ${response.status})`);
+  }
   return response.json();
 }
 
+export async function listInvoices(): Promise<InvoiceSummary[]> {
+  return ok(await fetch("/api/invoices", { headers: orgHeaders }));
+}
+
 export async function getInvoice(id: number): Promise<Invoice> {
-  const response = await fetch(`/api/invoices/${id}`);
-  return response.json();
+  return ok(await fetch(`/api/invoices/${id}`, { headers: orgHeaders }));
 }
 
 export async function uploadInvoice(file: File): Promise<Invoice> {
@@ -71,7 +77,8 @@ async function decide(id: number, action: "approve" | "reject", note: string): P
     headers: { ...orgHeaders, "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: CURRENT_USER, note }),
   });
-  return response.json();
+  // Was: response.json() regardless of status, so a refused approval looked like a success.
+  return ok(response);
 }
 
 export const approveInvoice = (id: number, note: string) => decide(id, "approve", note);

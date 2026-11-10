@@ -1,20 +1,62 @@
-"""Deterministic checks.
+"""Deterministic AP policy checks (AP_POLICY.md section 3). These decide routing.
 
-Since v0.3 these are informational: they are stored as `warnings` and shown to reviewers.
-Routing is decided by the model, which applies the AP policy itself (see pipeline.py).
+v0.3 let the model decide `requires_review` and kept these as UI warnings only. A document could then talk
+the model out of a review (dev_012). Routing now comes from code. The model only extracts fields, and
+nothing it says can remove a review reason.
 """
 from __future__ import annotations
 
 import re
 import sqlite3
+from datetime import date
+from decimal import Decimal
 
 from .models import Invoice
 from .reference import ReferenceData
 
-GSTIN_PATTERN = re.compile(r"\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]")
+GSTIN_PATTERN = re.compile(r"^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$")
 GSTIN_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-BUYER_STATE_CODE = 27  # Maharashtra
+TOTALS_TOLERANCE = Decimal("1.00")
+NEW_VENDOR_DAYS = 90
+ZERO = Decimal("0.00")
 
+REASON_CODES = (
+    "credit_note", "duplicate", "gstin_invalid", "vendor_unknown", "vendor_new", "bank_details_changed",
+    "tax_type_mismatch", "totals_mismatch", "foreign_currency", "suspicious_content", "processing_error",
+)
+
+
+# --- normalisation (AP_POLICY.md section 1) ---------------------------------------------------------------
+
+def normalize_invoice_number(number: str | None) -> str:
+    """'SIS / 26-27 / 0018' -> 'SIS26270018'. Leading zeros are significant."""
+    return re.sub(r"[\s/\-#.]", "", number or "").upper()
+
+
+def normalize_name(name: str | None) -> str:
+    """Case-insensitive, ignoring spaces and punctuation."""
+    return re.sub(r"[^0-9a-z]", "", (name or "").lower())
+
+
+def financial_year(d: date) -> int:
+    """The year the FY starts in: 2026-04-03 -> 2026 (FY 2026-27), 2026-03-31 -> 2025 (FY 2025-26)."""
+    return d.year if d.month >= 4 else d.year - 1
+
+
+def supplier_key(currency: str | None, gstin: str | None, name: str | None) -> str | None:
+    """GSTIN for domestic documents and legal name for foreign ones."""
+    if (currency or "INR").upper() == "INR":
+        gstin = (gstin or "").strip().upper()
+        return f"GSTIN:{gstin}" if gstin else None
+    name = normalize_name(name)
+    return f"NAME:{name}" if name else None
+
+
+def digits_only(value: str | None) -> str:
+    return re.sub(r"\D", "", value or "")
+
+
+# --- GSTIN (Appendix A) ------------------------------------------------------------------------------------
 
 def gstin_checksum(first14: str) -> str:
     total = 0
@@ -25,75 +67,174 @@ def gstin_checksum(first14: str) -> str:
 
 
 def is_valid_gstin(gstin: str | None) -> bool:
-    """Validate a GSTIN's format and check digit."""
+    """Validate a GSTIN's format *and* its check character."""
     if not gstin:
         return False
-    return GSTIN_PATTERN.match(gstin.strip().upper()) is not None
+    gstin = gstin.strip().upper()
+    if not GSTIN_PATTERN.match(gstin):
+        return False
+    return gstin_checksum(gstin[:14]) == gstin[14]
 
 
-def find_vendor(ref: ReferenceData, supplier_name: str | None) -> dict | None:
-    if not supplier_name:
+# --- vendor master -----------------------------------------------------------------------------------------
+
+def find_vendor(ref: ReferenceData, inv: Invoice) -> dict | None:
+    """A domestic supplier is identified by GSTIN alone. The printed name is not proof of identity.
+    A foreign supplier is identified by its legal name, normalised."""
+    if inv.is_domestic:
+        gstin = (inv.supplier_gstin or "").strip().upper()
+        if not gstin:
+            return None
+        return next((v for v in ref.vendors if (v.get("gstin") or "").strip().upper() == gstin), None)
+    name = normalize_name(inv.supplier_name)
+    if not name:
         return None
-    for vendor in ref.vendors:
-        if vendor["legal_name"].strip().lower() == supplier_name.strip().lower():
-            return vendor
-    return None
+    return next((v for v in ref.vendors if normalize_name(v.get("legal_name")) == name), None)
+
+
+def vendor_is_us(vendor: dict | None) -> bool:
+    return bool(vendor) and (vendor.get("country") or "").strip().upper() == "US"
+
+
+# --- the checks --------------------------------------------------------------------------------------------
+
+def check_credit_note(inv: Invoice) -> list[str]:
+    return ["credit_note"] if inv.document_type == "credit_note" else []
+
+
+def check_foreign_currency(inv: Invoice) -> list[str]:
+    return [] if inv.is_domestic else ["foreign_currency"]
+
+
+def check_gstin(inv: Invoice) -> list[str]:
+    if inv.is_domestic and not is_valid_gstin(inv.supplier_gstin):
+        return ["gstin_invalid"]
+    return []
 
 
 def check_vendor(vendor: dict | None) -> list[str]:
     return [] if vendor else ["vendor_unknown"]
 
 
-def check_gstin(inv: Invoice) -> list[str]:
-    if inv.currency == "INR" and not is_valid_gstin(inv.supplier_gstin):
-        return ["gstin_invalid"]
-    return []
-
-
-def check_tax_type(inv: Invoice) -> list[str]:
-    if not inv.supplier_gstin:
+def check_vendor_new(inv: Invoice, vendor: dict | None) -> list[str]:
+    if not vendor or not inv.invoice_date or not vendor.get("onboarded_on"):
         return []
-    intra_state = inv.supplier_gstin[:2] == BUYER_STATE_CODE
-    if intra_state and inv.igst > 0:
+    onboarded = date.fromisoformat(vendor["onboarded_on"].strip())
+    return ["vendor_new"] if (inv.invoice_date - onboarded).days < NEW_VENDOR_DAYS else []
+
+
+def check_tax_type(inv: Invoice, ref: ReferenceData) -> list[str]:
+    if not inv.is_domestic or not inv.supplier_gstin:
+        return []
+    buyer_state = str(ref.buyer.get("state_code") or ref.buyer.get("gstin", "")[:2]).zfill(2)
+    intra_state = inv.supplier_gstin.strip()[:2] == buyer_state
+    if intra_state and inv.igst != ZERO:
         return ["tax_type_mismatch"]
-    if not intra_state and (inv.cgst > 0 or inv.sgst > 0):
+    if not intra_state and (inv.cgst != ZERO or inv.sgst != ZERO):
         return ["tax_type_mismatch"]
     return []
 
 
 def check_totals(inv: Invoice) -> list[str]:
+    """|sum(line amounts) + CGST + SGST + IGST + round-off - total| > 1.00. Exactly 1.00 is within tolerance.
+    Callers must make sure total and the line amounts were read; see pipeline.py."""
     if inv.total is None:
         return []
-    computed = sum(item.amount for item in inv.line_items) + inv.cgst + inv.sgst + inv.igst
-    return [] if computed == inv.total else ["totals_mismatch"]
+    if inv.line_items and all(item.amount is not None for item in inv.line_items):
+        lines = sum((item.amount for item in inv.line_items), ZERO)
+    elif inv.subtotal is not None:
+        lines = inv.subtotal
+    else:
+        return []
+    computed = lines + inv.cgst + inv.sgst + inv.igst + inv.round_off
+    return ["totals_mismatch"] if abs(computed - inv.total) > TOTALS_TOLERANCE else []
 
 
-def check_duplicate(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice) -> list[str]:
-    row = conn.execute(
-        "SELECT id FROM invoices WHERE supplier_name = ? AND invoice_number = ?",
-        (inv.supplier_name, inv.invoice_number),
-    ).fetchone()
-    if row:
-        return ["duplicate"]
+def duplicate_key(currency, gstin, name, number, invoice_date: date | None) -> tuple | None:
+    key = supplier_key(currency, gstin, name)
+    number = normalize_invoice_number(number)
+    if not key or not number or not invoice_date:
+        return None
+    return key, number, financial_year(invoice_date)
+
+
+def check_duplicate(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice, org_id: str = "meridian") -> list[str]:
+    """Same supplier key, normalised invoice number and FY as a paid invoice, or as an invoice processed earlier
+    (earlier in the batch, since batches run in document_id order). Credit notes are not checked."""
+    if inv.document_type != "invoice":
+        return []
+    key = duplicate_key(inv.currency, inv.supplier_gstin, inv.supplier_name, inv.invoice_number, inv.invoice_date)
+    if key is None:
+        return []
     for paid in ref.paid_invoices:
-        if paid["supplier_name"] == inv.supplier_name and paid["invoice_number"] == inv.invoice_number:
+        paid_currency = "INR" if (paid.get("supplier_gstin") or "").strip() else "FOREIGN"
+        try:
+            paid_date = date.fromisoformat((paid.get("invoice_date") or "").strip())
+        except ValueError:
+            continue
+        if duplicate_key(paid_currency, paid.get("supplier_gstin"), paid.get("supplier_name"),
+                         paid.get("invoice_number"), paid_date) == key:
+            return ["duplicate"]
+    rows = conn.execute(
+        "SELECT currency, supplier_gstin, supplier_name, invoice_number, invoice_date FROM invoices "
+        "WHERE org_id = ? AND document_type = 'invoice' AND invoice_date IS NOT NULL",
+        (org_id,),
+    ).fetchall()
+    for row in rows:
+        if duplicate_key(row["currency"], row["supplier_gstin"], row["supplier_name"], row["invoice_number"],
+                         date.fromisoformat(row["invoice_date"])) == key:
             return ["duplicate"]
     return []
 
 
 def check_bank_details(inv: Invoice, vendor: dict | None) -> list[str]:
-    if vendor and inv.ifsc and vendor.get("ifsc") and inv.ifsc != vendor["ifsc"]:
+    """Account numbers compared digits-only, IFSC case-insensitively. Not raised for unknown vendors or when
+    the document shows no bank details."""
+    if not vendor:
+        return []
+    doc_account, doc_ifsc = digits_only(inv.bank_account), (inv.ifsc or "").strip().upper()
+    if doc_account and doc_account != digits_only(vendor.get("bank_account")):
+        return ["bank_details_changed"]
+    if doc_ifsc and doc_ifsc != (vendor.get("ifsc") or "").strip().upper():
         return ["bank_details_changed"]
     return []
 
 
-def run_checks(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice) -> list[str]:
-    vendor = find_vendor(ref, inv.supplier_name)
-    return (
-        check_gstin(inv)
+# --- suspicious content (deterministic; does not depend on the model noticing) -----------------------------
+
+_MARKUP = re.compile(
+    r"<\s*/?\s*(script|img|iframe|svg|object|embed|style|form|input|a|body|html|meta|link|div|span|base)\b"
+    r"|\bon[a-z]+\s*=\s*['\"]|javascript\s*:|data:text/html",
+    re.IGNORECASE,
+)
+_ADDRESSED_TO_MACHINES = re.compile(
+    r"\b(AI|LLM|GPT|ChatGPT|Claude)\b(\s+(assistant|system|model|agent|tool)s?)?"
+    r"|\bartificial intelligence\b|\blanguage models?\b"
+    r"|\bautomat(ed|ic|ion)\s+(\w+\s+){0,3}(processing|system|software|assistant|tool|approval)s?\b"
+    r"|\b(ignore|disregard)\s+(all\s+|any\s+|the\s+)?(previous|prior|above)\s+instructions\b"
+    r"|\bsystem prompt\b|\brequires_review\b|\breview_reasons\b|\bneeds_review\b",
+    re.IGNORECASE,
+)
+
+
+def check_suspicious_content(raw_text: str) -> list[str]:
+    """Text addressed to automated systems or AI, or embedded HTML/script markup (AP_POLICY.md section 3)."""
+    if _MARKUP.search(raw_text) or _ADDRESSED_TO_MACHINES.search(raw_text):
+        return ["suspicious_content"]
+    return []
+
+
+def run_checks(conn: sqlite3.Connection, ref: ReferenceData, inv: Invoice, org_id: str = "meridian") -> list[str]:
+    vendor = find_vendor(ref, inv)
+    reasons = (
+        check_credit_note(inv)
+        + check_foreign_currency(inv)
+        + check_gstin(inv)
         + check_vendor(vendor)
-        + check_tax_type(inv)
+        + check_vendor_new(inv, vendor)
+        + check_tax_type(inv, ref)
         + check_totals(inv)
-        + check_duplicate(conn, ref, inv)
+        + check_duplicate(conn, ref, inv, org_id)
         + check_bank_details(inv, vendor)
     )
+    return list(dict.fromkeys(reasons))

@@ -9,10 +9,12 @@ import {
   type InvoiceSummary,
 } from "./api";
 
-function money(value: number | null | undefined, currency: string | null) {
-  if (value === null || value === undefined) return "–";
-  const symbol = currency === "USD" ? "$" : "₹";
-  return symbol + value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function money(value: number | string | null | undefined, currency: string | null) {
+  if (value === null || value === undefined || value === "") return "–";
+  const amount = typeof value === "number" ? value : Number(value);
+  if (Number.isNaN(amount)) return String(value);
+  const symbol = currency === "INR" || currency === null ? "₹" : currency === "USD" ? "$" : `${currency} `;
+  return symbol + amount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 const label = (status: string) => status.replace(/_/g, " ");
@@ -23,11 +25,13 @@ export default function App() {
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
 
-  // Keep the queue fresh while documents are being processed.
+  // Keep the queue fresh while documents are being processed. Was: a 500 ms interval that was never cleared
+  // (a new one leaked on every remount) and hammered the API.
   useEffect(() => {
-    setInterval(() => {
-      listInvoices().then(setInvoices);
-    }, 500);
+    const refresh = () => listInvoices().then(setInvoices).catch(() => undefined);
+    refresh();
+    const timer = window.setInterval(refresh, 5000);
+    return () => window.clearInterval(timer);
   }, []);
 
   async function open(id: number) {
@@ -49,19 +53,29 @@ export default function App() {
     event.target.value = "";
   }
 
-  async function approve() {
-    if (!selected) return;
-    const result = await approveInvoice(selected.id, note);
-    setMessage(`Approval recorded (${result.approvals} of ${result.required_approvals})`);
-    setSelected(await getInvoice(selected.id));
-  }
+  const [busy, setBusy] = useState(false);
 
-  async function reject() {
-    if (!selected) return;
-    await rejectInvoice(selected.id, note);
-    setMessage("Document rejected");
-    setSelected(await getInvoice(selected.id));
+  // The server enforces the approval rules and is safe under retries; `busy` just stops accidental double-clicks.
+  async function decide(action: "approve" | "reject") {
+    if (!selected || busy) return;
+    setBusy(true);
+    try {
+      if (action === "approve") {
+        const result = await approveInvoice(selected.id, note);
+        setMessage(`Approval recorded (${result.approvals} of ${result.required_approvals})`);
+      } else {
+        await rejectInvoice(selected.id, note);
+        setMessage("Document rejected");
+      }
+      setSelected(await getInvoice(selected.id));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setBusy(false);
+    }
   }
+  const approve = () => decide("approve");
+  const reject = () => decide("reject");
 
   return (
     <div className="app">
@@ -161,7 +175,9 @@ export default function App() {
               {selected.notes && (
                 <div className="callout">
                   <h3>Notes on the document</h3>
-                  <div dangerouslySetInnerHTML={{ __html: selected.notes }} />
+                  {/* Plain text only. Notes come from the vendor's document: dev_013 carries an
+                      <img onerror=...> payload that dangerouslySetInnerHTML executed in the reviewer's browser. */}
+                  <p className="notes">{selected.notes}</p>
                 </div>
               )}
 
@@ -193,8 +209,8 @@ export default function App() {
               <div className="decision">
                 <textarea placeholder="Note for the audit log" value={note} onChange={(e) => setNote(e.target.value)} />
                 <div className="actions">
-                  <button onClick={approve}>Approve</button>
-                  <button className="secondary" onClick={reject}>
+                  <button onClick={approve} disabled={busy}>Approve</button>
+                  <button className="secondary" onClick={reject} disabled={busy}>
                     Reject
                   </button>
                 </div>
