@@ -161,17 +161,27 @@ export default function App() {
           await rejectInvoice(selected.id, user, note);
           setMessage("Document rejected.");
         }
-        await refresh();
         const after = await getInvoice(selected.id);
-        if (after.status === "approved" || after.status === "rejected") move(1);
-        else setSelected(after);
+        const fresh = await getQueue();
+        setQueue(fresh);
+        if (after.status === "approved" || after.status === "rejected") {
+          // A decided document leaves the screen: open the next one in the same tab, or clear the panel. (Was:
+          // move(1) on the pre-decision list, which re-selected the same invoice when it was the last one.)
+          const next = fresh.items.find((i) => i.bucket === tab && i.id !== after.id);
+          if (next) await open(next.id);
+          else {
+            setSelected(null);
+            setFocusKey(null);
+            setNote("");
+          }
+        } else setSelected(after);
       } catch (error) {
         setMessage(error instanceof Error ? error.message : String(error));
       } finally {
         setBusy(false);
       }
     },
-    [selected, busy, user, note, refresh, move],
+    [selected, busy, user, note, tab, open],
   );
 
   // Keyboard: j/k next and previous, a approve, r reject, n write a note. Ignored while typing.
@@ -383,6 +393,9 @@ export default function App() {
                     </div>
                   )}
 
+                  {selected.status === "approved" || selected.status === "rejected" ? (
+                    <p className="hint">This document is {label(selected.status)}; there is nothing left to decide.</p>
+                  ) : (
                   <div className="decision">
                     {selected.approvals?.length > 0 && (
                       <p className="hint">
@@ -407,6 +420,7 @@ export default function App() {
                       {blocked ?? `Approvals required: ${selected.required_approvals}.`} The server enforces these rules.
                     </p>
                   </div>
+                  )}
                 </div>
 
                 <div>
