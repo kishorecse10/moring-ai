@@ -1,0 +1,90 @@
+rm -rf /home/kishore-17494/IdeaProjects/Personal/moring-ai/.eval-starter-tree && mkdir -p /home/kishore-17494/IdeaProjects/Personal/moring-ai/.eval-starter-tree && git archive e2f4ac2 backend data docs | tar -x -C /home/kishore-17494/IdeaProjects/Personal/moring-ai/.eval-starter-tree
+cd backend && .venv/bin/python eval/run_live.py --code-root /home/kishore-17494/IdeaProjects/Personal/moring-ai/.eval-starter-tree/backend --input ../data/invoices/dev \
+	--out ../submission/eval_runs/starter_opus_dev_as_shipped --replay ../submission/eval_runs/starter_opus_dev_recorded/calls.jsonl > /dev/null
+cd backend && .venv/bin/python eval/run_live.py --code-root /home/kishore-17494/IdeaProjects/Personal/moring-ai/.eval-starter-tree/backend --input ../data/invoices/dev \
+	--out ../submission/eval_runs/starter_opus_dev_parsed --replay ../submission/eval_runs/starter_opus_dev_recorded/calls.jsonl --strip-fences > /dev/null
+cd backend && .venv/bin/python eval/score.py starter_as_shipped=../submission/eval_runs/starter_opus_dev_as_shipped \
+	starter_parsed=../submission/eval_runs/starter_opus_dev_parsed \
+	mine#1=../submission/eval_runs/mine_opus_dev_r1 mine#2=../submission/eval_runs/mine_opus_dev_r2 mine#3=../submission/eval_runs/mine_opus_dev_r3 \
+	--json ../submission/eval_runs/scores.json
+
+=== starter_as_shipped  (claude-opus-5-5, 24 docs)
+  missed reviews (needed review, routed ready): 0/13  []
+  lost (no routing at all): 24  ['dev_001', 'dev_002', 'dev_003', 'dev_004', 'dev_005', 'dev_006']…
+  unnecessary reviews: 0/11  []
+  processing_error: []
+  reasons missing: []
+  reasons extra:   []
+  approvals wrong: []
+  field accuracy, handover method: n/a (0 fields scored)
+  field accuracy, no leak + failures count: 0/252 = 0.0%
+  field accuracy, ditto under my labels: 0/252 = 0.0%
+  fenced replies: 18 of 24
+  calls/doc 1.00 (failed 0, unpriced 0)  tokens/doc in 8854 out 1913
+  cost ₹6.48/doc  latency p50 16.8s p95 21.1s max 21.3s
+--- starter_as_shipped pooled over 1 run(s): missed 0/13 (per run [0]), lost 24, unnecessary 0/11, ₹6.48/doc, p50 16.8s p95 21.1s
+    production: miss rate ≤ 20.6% (95% upper) → ≤ 80 missed/month; unnecessary 0/month = ₹0; LLM ₹19,448/month
+
+=== starter_parsed  (claude-opus-5-5, 24 docs)
+  missed reviews (needed review, routed ready): 2/13  ['dev_015', 'dev_019']
+  lost (no routing at all): 0  []
+  unnecessary reviews: 0/11  []
+  processing_error: []
+  reasons missing: ["dev_015 missing ['duplicate']", "dev_019 missing ['duplicate']"]
+  reasons extra:   []
+  approvals wrong: ['dev_007 1 vs 0', 'dev_014 1 vs 2', 'dev_017 1 vs 2']
+  field accuracy, handover method: 287/288 = 99.7%
+  field accuracy, no leak + failures count: 251/252 = 99.6%
+  field accuracy, ditto under my labels: 252/252 = 100.0%
+  fenced replies: 18 of 29
+  calls/doc 1.21 (failed 0, unpriced 0)  tokens/doc in 10240 out 2513
+  cost ₹8.03/doc  latency p50 17.7s p95 41.6s max 51.8s
+--- starter_parsed pooled over 1 run(s): missed 2/13 (per run [2]), lost 0, unnecessary 0/11, ₹8.03/doc, p50 17.7s p95 41.6s
+    production: miss rate ≤ 41.0% (95% upper) → ≤ 160 missed/month; unnecessary 0/month = ₹0; LLM ₹24,084/month
+
+=== mine#1  (claude-opus-5-5, 24 docs)
+  missed reviews (needed review, routed ready): 0/13  []
+  lost (no routing at all): 0  []
+  unnecessary reviews: 0/11  []
+  processing_error: []
+  reasons missing: []
+  reasons extra:   []
+  approvals wrong: []
+  field accuracy, handover method: 287/288 = 99.7%
+  field accuracy, no leak + failures count: 251/252 = 99.6%
+  field accuracy, ditto under my labels: 252/252 = 100.0%
+  fenced replies: 16 of 24
+  calls/doc 1.00 (failed 0, unpriced 0)  tokens/doc in 1308 out 576
+  cost ₹1.47/doc  latency p50 5.5s p95 6.7s max 7.2s
+
+=== mine#2  (claude-opus-5-5, 24 docs)
+  missed reviews (needed review, routed ready): 0/13  []
+  lost (no routing at all): 0  []
+  unnecessary reviews: 0/11  []
+  processing_error: []
+  reasons missing: []
+  reasons extra:   []
+  approvals wrong: []
+  field accuracy, handover method: 287/288 = 99.7%
+  field accuracy, no leak + failures count: 251/252 = 99.6%
+  field accuracy, ditto under my labels: 252/252 = 100.0%
+  fenced replies: 20 of 24
+  calls/doc 1.00 (failed 0, unpriced 0)  tokens/doc in 1308 out 587
+  cost ₹1.49/doc  latency p50 5.6s p95 7.3s max 7.3s
+
+=== mine#3  (claude-opus-5-5, 24 docs)
+  missed reviews (needed review, routed ready): 0/13  []
+  lost (no routing at all): 0  []
+  unnecessary reviews: 0/11  []
+  processing_error: []
+  reasons missing: []
+  reasons extra:   []
+  approvals wrong: []
+  field accuracy, handover method: 287/288 = 99.7%
+  field accuracy, no leak + failures count: 251/252 = 99.6%
+  field accuracy, ditto under my labels: 252/252 = 100.0%
+  fenced replies: 16 of 24
+  calls/doc 1.00 (failed 0, unpriced 0)  tokens/doc in 1308 out 571
+  cost ₹1.46/doc  latency p50 5.6s p95 7.4s max 8.0s
+--- mine pooled over 3 run(s): missed 0/39 (per run [0, 0, 0]), lost 0, unnecessary 0/33, ₹1.48/doc, p50 5.6s p95 7.3s
+    production: miss rate ≤ 20.6% (95% upper) → ≤ 80 missed/month; unnecessary 0/month = ₹0; LLM ₹4,433/month

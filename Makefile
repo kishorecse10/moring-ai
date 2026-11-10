@@ -1,7 +1,7 @@
 VENV := backend/.venv
 PYTHON ?= python3
 
-.PHONY: setup test api ui dev predict predict-flags eval eval-live eval-score
+.PHONY: setup test api ui dev predict predict-flags eval eval-live eval-score evidence
 
 setup:
 	$(PYTHON) -m venv backend/.venv
@@ -54,3 +54,9 @@ eval-score:
 		starter_parsed=$(RUNS)/starter_opus_dev_parsed \
 		mine#1=$(RUNS)/mine_opus_dev_r1 mine#2=$(RUNS)/mine_opus_dev_r2 mine#3=$(RUNS)/mine_opus_dev_r3 \
 		--json $(RUNS)/scores.json
+
+# FINDINGS F1-F3 evidence, reproduced offline on the unmodified starter from its recorded replies (submission/evidence/).
+evidence:
+	rm -rf $(STARTER_TREE) && mkdir -p $(STARTER_TREE) && git archive e2f4ac2 backend data docs | tar -x -C $(STARTER_TREE)
+	$(VENV)/bin/python submission/evidence/reproduce_starter.py --starter $(STARTER_TREE)/backend
+	cd backend && .venv/bin/pytest -v -p no:cacheprovider > ../submission/evidence/tests_mine.txt

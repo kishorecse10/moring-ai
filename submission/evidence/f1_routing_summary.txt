@@ -1,0 +1,35 @@
+$ python -m ledgerline.cli predict --input data/invoices/dev
+--- stderr ---
+--- stdout ---
+wrote 24/24 predictions to /home/kishore-17494/IdeaProjects/Personal/moring-ai/submission/evidence/f1_routing_on_recorded_replies.jsonl
+
+Starter routing (model-decided) vs labels, with the ```json fence stripped from each reply.
+The verification pass was not recorded; it is replayed as 'no change'.
+
+doc      label  starter  reasons
+dev_001  False  False    []
+dev_002  False  False    []
+dev_003  False  False    []
+dev_004  True   True     ['tax_type_mismatch']
+dev_005  True   True     ['bank_details_changed']
+dev_006  False  False    []
+dev_007  True   True     ['credit_note']
+dev_008  True   True     ['totals_mismatch']
+dev_009  False  False    []
+dev_010  True   True     ['gstin_invalid', 'vendor_unknown']
+dev_011  True   True     ['vendor_new']
+dev_012  True   True     ['vendor_new', 'suspicious_content']
+dev_013  True   True     ['suspicious_content']
+dev_014  True   True     ['foreign_currency']
+dev_015  True   False    []   <-- MISMATCH
+dev_016  False  False    []
+dev_017  False  False    []
+dev_018  True   True     ['vendor_unknown']
+dev_019  True   False    []   <-- MISMATCH
+dev_020  False  False    []
+dev_021  False  False    []
+dev_022  False  False    []
+dev_023  False  False    []
+dev_024  True   True     ['bank_details_changed']
+
+mismatches: ['dev_015', 'dev_019']
